@@ -1,5 +1,3 @@
-
-  
   warn(".  oooooooo8     o      ooooo       ooooo       oooo     oooo ooooooooooo")
   warn(".o888     88    888      888         888         8888o   888   888    88")
   warn(".888           8  88     888         888         88 888o8 88   888ooo8   ")
@@ -14,7 +12,7 @@
 local repo = 'https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/'
 
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
-local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua"))()
+local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua""))()
 local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
 
 local Window = Library:CreateWindow({
@@ -600,6 +598,123 @@ while task.wait() do
 end
 end)
 
+MiscTab:AddToggle('LootAll',{Text='Loot All',Default=false}):AddKeyPicker('LootAllKey', {Default='Non',SyncToggleState=true,Mode='Toggle',Text='Loot All',NoUI=false})
+
+Toggles.LootAll:OnChanged(function()
+  for i = 1, 20 do
+      game:GetService("Players").LocalPlayer.RemoteEvent:FireServer(12, i, true)
+  end
+end)
+
+local XRAY22 = false
+MiscTab:AddToggle('XRAY', {Text = 'XRAY', Default = false}):AddKeyPicker('XRAYKey', {Default='Non',SyncToggleState=true,Mode='Toggle',Text='XRAY',NoUI=false}):OnChanged(function()
+    XRAY22 = Toggles.XRAY.Value
+    if XRAY22 then
+        for i,v in pairs(game:GetDescendants()) do
+            if v:FindFirstChild("Hitbox") then
+                v.Hitbox.Transparency = 0.6
+            end
+        end
+    else
+        for i,v in pairs(game:GetDescendants()) do
+            if v:FindFirstChild("Hitbox") then
+                v.Hitbox.Transparency = 0
+            end
+        end
+    end
+end)
+MiscTab:AddLabel('deposit all'):AddKeyPicker('gazkb', { Default = 'Non', SyncToggleState = false, Mode = 'Toggle', Text = 'deposit all', NoUI = true })
+Options.gazkb:OnClick(function()
+for i = 1, 20 do
+wait(0.03)
+local ohNumber1 = 12
+local ohNumber2 = i
+local ohBoolean3 = false
+game:GetService("Players").LocalPlayer.RemoteEvent:FireServer(ohNumber1, ohNumber2, ohBoolean3)
+end
+end)
+
+
+local NoSlowDown = false
+local old = getrenv()._G.modules.Character.SetSprintBlocked
+ExploitsTab:AddToggle('NOSLOWDOWN',{Text='no slowdown',Default=false}):OnChanged(function(Value)
+NoSlowDown = Value
+getrenv()._G.modules.Character.SetSprintBlocked = function(...)
+local args = {...}
+if NoSlowDown then
+  args[1] = false
+  return old(unpack(args))
+end
+return old(...)
+end
+end)
+
+local Misc = {
+Settings = {
+  JumpShoot = false,
+  NoADS = false,
+}
+}
+
+ExploitsTab:AddToggle('JumpShoot',{Text='jump shoot',Default=false}):OnChanged(function(Value)
+Misc.Settings.JumpShoot = Value
+end)
+local oldIsGrounded;oldIsGrounded = hookfunction(getrenv()._G.modules.Character.IsGrounded,function(...)
+if Misc.Settings.JumpShoot == true then
+return true
+else
+return oldIsGrounded(...)
+end
+end)
+
+ExploitsTab:AddToggle('NoADS',{Text='no ads',Default=false}):OnChanged(function(Value)
+Misc.Settings.NoADS = Value
+end)
+local oldNoADS;oldNoADS = hookfunction(getrenv()._G.modules.Camera.SetVMAimingOffset,function(...)
+if Misc.Settings.NoADS == true then
+return true
+else
+return oldNoADS(...)
+end
+end)
+
+local NoSway = false
+ExploitsTab:AddToggle('NoSway',{Text='no sway',Default=false}):OnChanged(function(Value)
+NoSway = Value
+end)
+local NoSwayHook;NoSwayHook = hookfunction(getrenv()._G.modules.Camera.SetSwaySpeed,function(...)
+local args = {...}
+if NoSway == true then
+args[1] = 0
+return NoSwayHook(unpack(args))
+end
+return NoSwayHook(...)
+end)
+
+ExploitsTab:AddToggle('NoReloadAnimation',{Text='no reload animation',Default=false}):OnChanged(function(Value)
+gunMods.noReloadanimTog = Value
+end)
+local reloadDuringShoot;reloadDuringShoot = hookfunction(getupvalues(getrenv()._G.modules.FPS.ToolControllers.RangedWeapon.PlayerFire)[1],function(...)
+local arg = {...}
+if gunMods.noReloadanimTog == true then
+arg[2]['ReloadTime'] = 0
+return reloadDuringShoot(unpack(arg))
+end
+return reloadDuringShoot(...)
+end)
+
+ExploitsTab:AddToggle('ArrowGun', {Text = 'arrow gun',Default = false}):OnChanged(function(ArrowValue)
+for I, V in pairs(getgc(true)) do
+if type(V) == "table" and rawget(V, "TracerPart") then
+  if ArrowValue == true then
+    V.TracerPart = "Arrow"
+  elseif ArrowValue == false then
+    V.TracerPart = "Bullet"
+  end
+end
+end
+end)
+
 
 local deleteWallsEnabled = false
 ExploitsTab:AddToggle('', {Text = "delete walls",Default = false,Tooltip = "Left Click / Mouse Button 2 (MB2)",}):AddKeyPicker('', {Default='MB2',SyncToggleState=true,Mode='Toggle',Text='Delete Walls',NoUI=true}):OnChanged(function(value)
@@ -630,6 +745,77 @@ local SpinbotTab = SpinbotTabBox:AddTab('spinbot')
 
 --* Spinbot *--
 
+local fakeduck = false
+local Spinbot = false
+local SpinbotSpeed = 3
+local SpinbotType = "Normal"
+local value = 1
+local SpinBotLM = false
+local SpinBotV = false
+SpinbotTab:AddToggle('Spinbot',{Text='enabled',Default=false}):OnChanged(function(Value)
+Spinbot = Value
+end)
+
+SpinbotTab:AddSlider('SpinbotSpeed', {Text='speed:',Default=3,Min=1,Max=3,Rounding=0,Compact=false,Thickness = 3}):OnChanged(function(Value)
+SpinbotSpeed = Value
+end)
+
+SpinbotTab:AddDropdown('SpinbotType', {Values = {"Normal", "Desync", "Random"},Default = 1,Multi = false,Text = 'type:'}):OnChanged(function(Value)
+SpinbotType = Value
+end)
+
+local OldSpinHook
+OldSpinHook = hookfunction(game.Players.LocalPlayer:FindFirstChild("RemoteEvent").FireServer, function(self, ...)
+local args = {...}
+if args[1] and args[2] and args[1] == 1 and typeof(args[2]) == "Vector3" and args[4] and Spinbot == true then
+  if SpinBotLM == true and SpinbotType == "Desync" then
+    args[4] = value
+    value = value + SpinbotSpeed
+  elseif SpinbotType == "Normal" or SpinBotLM == false then
+    args[4] = value
+    value = value - SpinbotSpeed
+  end
+end
+if args[1] and args[2] and args[1] == 1 and typeof(args[2]) == "Vector3" and args[4] and Spinbot == true then
+  if SpinBotV == true and SpinbotType == "Desync" then
+    args[3] = 1.5000001192092896
+  elseif SpinbotType == "Normal" or SpinBotV == false then
+    args[3] = -1.5000001192092896
+  elseif SpinbotType == "Random" or SpinBotV == false then
+    args[3] = -1.5000001192092896
+  end
+end
+return OldSpinHook(self, unpack(args))
+end)
+task.spawn(function()
+while task.wait() do
+  if SpinbotType == "Desync" then
+    SpinBotV = not SpinBotV
+  end
+end
+end)
+task.spawn(function()
+while task.wait(0.1) do
+  if SpinbotType == "Desync" or SpinbotType == "Random" then
+    SpinBotLM = not SpinBotLM
+  end
+end
+end)
+
+SpinbotTab:AddToggle('FakeCrouch', {Text = 'fake duck',Default = false,Tooltip = 'Makes u crouch for other people also they cant hear your footsteps'})
+local OldCrouchHook; OldCrouchHook = hookfunction(game:GetService("Players").LocalPlayer:FindFirstChild("RemoteEvent").FireServer, function(self, ...)
+local args = {...}
+if args[1] == 2 and fakeduck == true then
+  args[2] = true
+end
+return OldCrouchHook(self, unpack(args))
+end)
+Toggles.FakeCrouch:OnChanged(function() fakeduck = Toggles.FakeCrouch.Value end)
+local function onFakeLagToggled(value)
+  local networkClient = game:GetService("NetworkClient")
+  networkClient:SetOutgoingKBPSLimit(value and 1 or 100)
+end
+SpinbotTab:AddToggle('FakeLag', {Text = 'fake lag', Default = false}):OnChanged(onFakeLagToggled)
 
 
 
